@@ -1,6 +1,6 @@
 ---
 title: "Plotting exercises with R"
-output: html_document
+output: github_document
 date: "`r Sys.Date()`"
 ---
 
