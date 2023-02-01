@@ -2,7 +2,7 @@ Plotting exercises with R
 ================
 
 
-Practice of different types of data visualization. The code is in [PlotExercises_report](https://github.com/acafonsosilva/PlotExercises_R/blob/main/PlotExercises_report.rmd).
+Practice of different types of data visualization. The code is in [PlotExercises_report](https://github.com/acafonsosilva/PlotExercises_R/blob/main/PlotExercises_report.Rmd).
 
 ------------------------------------------------------------------------
 
