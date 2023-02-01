@@ -2,11 +2,6 @@ Plotting exercises with R
 ================
 2023-02-01
 
-<style type="text/css">
-  body{
-  font-family: Exo;
-}
-</style>
 
 Practice of different types of data visualization
 
