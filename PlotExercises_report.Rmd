@@ -97,7 +97,7 @@ staticplot1 = ggplot(dt_formattedTop, aes(rank, group = country_name,
                 height = value,
                 width = 0.9), alpha = 0.8, color = NA) +
   geom_text(aes(y = 0, label = paste(country_name, " ")), vjust = 0.2, hjust = 1) +
-  geom_text(aes(y=value, label = value, hjust=-0.5)) +
+  geom_text(aes(y=value, label = as.character(round(value,0)), hjust=0)) +
   coord_flip(clip = "off", expand = FALSE) +
   ylim(0,110) +
   scale_x_reverse() +
@@ -131,7 +131,7 @@ staticplot2 = ggplot(dt_formattedbottom, aes(rank, group = country_name,
                 height = value,
                 width = 0.9), alpha = 0.8, color = NA) +
   geom_text(aes(y = 0, label = paste(country_name, " ")), vjust = 0.2, hjust = 1) +
-  geom_text(aes(y=value, label = value, hjust=-0.5)) +
+  geom_text(aes(y=value, label = as.character(round(value,0)), hjust=0)) + #-0.5
   coord_flip(clip = "off", expand = FALSE) +
     ylim(0,110) +
   scale_x_reverse() +
@@ -165,10 +165,10 @@ theme(axis.line=element_blank(),
 
 ```{r}
 frames=300
-gif1 <- animate(staticplot1, frames, width = 600, height = 350, res = 100,
-        renderer = gifski_renderer("outputs/gganim1.gif"), end_pause = 10, rewind = TRUE)
-gif2 <- animate(staticplot2, frames,width = 600, height = 350, res = 100,
-        renderer = gifski_renderer("outputs/gganim2.gif"), end_pause = 10, rewind = TRUE)
+gif1 <- animate(staticplot1, frames, width = 600, height = 350, res = 100, duration = 30,
+        renderer = gifski_renderer("outputs/gganim1.gif"), end_pause = 20)
+gif2 <- animate(staticplot2, frames,width = 600, height = 350, res = 100, duration = 30,
+        renderer = gifski_renderer("outputs/gganim2.gif"), end_pause = 20)
 
 a_mgif <- image_read(gif1)
 b_mgif <- image_read(gif2)
