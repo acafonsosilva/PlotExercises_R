@@ -81,13 +81,13 @@ theme(axis.line=element_blank(),
       plot.subtitle=element_text(hjust=1),
       plot.background=element_blank(), plot.margin = margin(1,1, 1, 4, "cm"),
       text=element_text(family="Exo")) +  
-  transition_states(year, transition_length = 2, state_length = 1,
+  transition_states(year, transition_length = 3, state_length = 0,
                     wrap = FALSE) +
   view_follow(fixed_x = TRUE, fixed_y = TRUE)  +
   labs(subtitle = "Best 10 Countries : {closest_state}") +
-  enter_fade() + 
-  exit_shrink() +
-  ease_aes('sine-in-out')
+   enter_fade() + 
+  exit_fade() +
+  ease_aes('linear')
 
 staticplot2 = ggplot(dt_formattedbottom, aes(rank, group = country_name,
                 fill = as.factor(country_name), color = as.factor(country_name))) +
@@ -115,13 +115,13 @@ theme(axis.line=element_blank(),
       plot.subtitle=element_text(hjust=1),
       plot.background=element_blank(), plot.margin = margin(1,1, 1, 4, "cm"),
       text=element_text(family="Exo")) +  
-  transition_states(year, transition_length = 2, state_length = 1,
+  transition_states(year, transition_length = 3, state_length = 0,
                     wrap = FALSE) +
   view_follow(fixed_x = TRUE, fixed_y = TRUE)  +
   labs(subtitle = "Worse 10 Countries : {closest_state}") +
   enter_fade() + 
-  exit_shrink() +
-  ease_aes('sine-in-out')
+  exit_fade() +
+  ease_aes('linear')
 ```
 
 ### Make and render animation with two plots
@@ -130,7 +130,7 @@ theme(axis.line=element_blank(),
 #Ratio of female to male labor force participation rate
 #caption  = "% | Data Source: World Bank Data"
 
-frames=200
+frames=300
 gif1 <- animate(staticplot1, frames, width = 600, height = 350, res = 100,
         renderer = gifski_renderer("gganim1.gif"), end_pause = 10, rewind = TRUE)
 gif2 <- animate(staticplot2, frames,width = 600, height = 350, res = 100,
