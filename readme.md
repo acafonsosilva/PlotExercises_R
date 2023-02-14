@@ -18,3 +18,15 @@ The data is in the datasets folder.
 
 
 <img src="outputs/gganim12.gif" style="display: block; margin: auto;" />
+
+
+## 3d population density plots
+
+Based on the [visual capitalist](https://www.visualcapitalist.com/cp/population-density-patterns-countries/) post with code from [github](https://github.com/Pecners/kontur_rayshader_tutorial).
+
+Using population data from [kontur](https://www.kontur.io/portfolio/population-dataset/) and country shape data from giscoR to plot the map with the package [Rayshader](https://github.com/tylermorganwall/rayshader).
+
+[Another post to look](https://spencerschien.info/post/data_viz_how_to/high_quality_rayshader_visuals/) and [this youtube video from the code author](https://www.youtube.com/watch?v=zgFXVhmKNbU).
+
+
+<img src="outputs/titled_rayshader_PTplot.png" style="display: block; margin: auto;" />

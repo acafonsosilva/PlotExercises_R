@@ -23,7 +23,7 @@ date: "`r Sys.Date()`"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(tidy=FALSE,
                       echo = TRUE, 
-                      cache = FALSE,
+                      cache = TRUE,
                       message=FALSE,
                       warning=FALSE,
                       fig.align='center')
@@ -36,6 +36,12 @@ library(janitor)
 library(hues)
 library(ggpubr)
 library(magick)
+library(sf)
+library(giscoR)
+library(stars)
+library(rayshader)
+library(MetBrewer)
+library(colorspace)
 
 i_am('PlotExercises_report.Rmd')
 
@@ -189,4 +195,167 @@ gif <- new_gif %>%
 gif
 anim_save("outputs/gganim12.gif",animation = gif)
 ```
+
+****
+
+## 3D population density density map 
+
+Based on the [visual capitalist](https://www.visualcapitalist.com/cp/population-density-patterns-countries/) post with code from [github](https://github.com/Pecners/kontur_rayshader_tutorial).
+
+Using population data from [kontur](https://www.kontur.io/portfolio/population-dataset/) and country shape data from giscoR to plot the map with the package Rayshader.
+
+[Another post to look](https://spencerschien.info/post/data_viz_how_to/high_quality_rayshader_visuals/) and [this youtube video from the code author](https://www.youtube.com/watch?v=zgFXVhmKNbU).
+
+### Load the data and the shapefile
+
+```{r, eval = FALSE}
+data <- st_read(here('datasets/kontur_population_PT_20220630.gpkg'))
+
+#EPSG: 4326 uses a coordinate system on the surface of a sphere or ellipsoid of reference. Think of it as this way: EPSG 4326 uses a coordinate system the same as a GLOBE (curved surface). EPSG 3857 uses a coordinate system the same as a MAP (flat surface)
+#"4326": WGS84
+
+pt <- giscoR::gisco_get_countries(
+  epsg = "3857", #pseudo-Mercator
+  resolution = "3",
+  country = "Portugal")  %>% 
+  st_transform(crs = st_crs(data))
+```
+
+### Limit the data to the shapefile and define extent of the figure
+
+```{r, eval = FALSE}
+# do intersection on data to limit kontur to portugal
+st_pt <- st_intersection(data, pt)
+
+# define aspect ratio based on bounding box
+bb <- st_bbox(st_pt)
+
+bottom_left <- st_point(c(bb[["xmin"]], bb[["ymin"]])) |> 
+  st_sfc(crs = st_crs(data))
+
+bottom_right <- st_point(c(bb[["xmax"]], bb[["ymin"]])) |> 
+  st_sfc(crs = st_crs(data))
+
+width <- st_distance(bottom_left, bottom_right)
+
+top_left <- st_point(c(bb[["xmin"]], bb[["ymax"]])) |> 
+  st_sfc(crs = st_crs(data))
+
+height <- st_distance(bottom_left, top_left)
+
+# handle conditions of width or height being the longer side
+if (width > height) {
+  w_ratio <- 1
+  h_ratio <- height / width
+} else {
+  h_ration <- 1
+  w_ratio <- width / height
+}
+```
+
+### Convert it to a raster
+
+```{r, eval = FALSE}
+# convert to raster so we can then convert to matrix
+size <- 5000
+
+pt_rast <- st_rasterize(st_pt, 
+                             nx = floor(size * w_ratio),
+                             ny = floor(size * h_ratio))
+
+mat <- matrix(pt_rast$population, 
+              nrow = floor(size * w_ratio),
+              ncol = floor(size * h_ratio))
+
+
+```
+
+### Create color palette and plot figure in high quality
+
+```{r, eval = FALSE}
+c1 <- met.brewer("OKeeffe2")
+swatchplot(c1)
+
+texture <- grDevices::colorRampPalette(c1, bias = 2)(256)
+swatchplot(texture)
+
+# plot the 3d map
+rgl::close3d()
+
+mat |> 
+  height_shade(texture = texture) |> 
+  plot_3d(heightmap = mat,
+          zscale = 100/5,
+          solid = FALSE, 
+          shadowdepth = 0, #baseshape="hex", 
+          theta = -10, phi = 60, zoom = .8)
+
+outfile <- here('outputs/rayshader_PTplot.png')
+
+{
+  start_time <- Sys.time()
+  cat(crayon::cyan(start_time), "\n")
+  if (!file.exists(outfile)) {
+    png::writePNG(matrix(1), target = outfile)
+  }
+  render_highquality(
+    filename = outfile,
+    interactive = FALSE,
+    lightdirection = 280,
+    lightaltitude = c(20, 80),
+    lightcolor = c(c1[2], "white"),
+    lightintensity = c(600, 100),
+    samples = 450,
+    width = 6000,
+    height = 6000
+  )
+  end_time <- Sys.time()
+  diff <- end_time - start_time
+  cat(crayon::cyan(diff), "\n")
+}
+```
+
+### Annotate the final figure
+
+```{r, eval = FALSE}
+img <- image_read(outfile)
+
+colors <- met.brewer("OKeeffe2")
+swatchplot(colors)
+
+text_color <- darken(colors[7], .25)
+swatchplot(text_color)
+
+annot <- str_glue("This map shows population density of Portugal. ",
+              "Population estimates are bucketed into 400 meter ",
+              "squares.") |> 
+  str_wrap(45)
+
+img |> 
+  image_crop(gravity = "center",
+             geometry = "6000x3500+0-150") |> 
+  image_annotate("Portugal Population Density",
+                 gravity = "northwest",
+                 location = "+200+100",
+                 color = text_color,
+                 size = 200,
+                 weight = 700,
+                 font = "Exo") |> 
+  image_annotate(annot,
+                  gravity = "west",
+                  location = "+800+800",
+                  color = text_color,
+                  size = 125,
+                  font = "Exo") |> 
+  image_annotate(str_glue("Graphic by Ana Silva | ",
+                      "Data: Kontur Population "),
+                 gravity = "south",
+                 location = "+0+100",
+                 font = "Exo",
+                 color = alpha(text_color, .5),
+                 size = 70) |> 
+  image_write(here('outputs/titled_rayshader_PTplot.png'))
+```
+
+![](outputs/titled_rayshader_PTplot.png)
 
